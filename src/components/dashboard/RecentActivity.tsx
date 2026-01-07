@@ -1,5 +1,6 @@
 import { UserPlus, UserMinus, Award, Clock, FileCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface Activity {
   id: string;
@@ -56,11 +57,22 @@ const typeConfig = {
 };
 
 export function RecentActivity() {
+  const handleActivityClick = (activity: Activity) => {
+    toast.info(`Viewing: ${activity.title}`);
+  };
+
+  const handleViewAll = () => {
+    toast.info("Opening activity log...");
+  };
+
   return (
     <div className="bg-card rounded-2xl border border-border p-5">
       <div className="flex items-center justify-between mb-5">
         <h3 className="text-lg font-semibold text-foreground">Recent Activity</h3>
-        <button className="text-sm text-primary hover:underline">
+        <button 
+          onClick={handleViewAll}
+          className="text-sm text-primary hover:underline"
+        >
           View All
         </button>
       </div>
@@ -77,7 +89,8 @@ export function RecentActivity() {
             return (
               <div
                 key={activity.id}
-                className="flex gap-4 animate-fade-in relative"
+                onClick={() => handleActivityClick(activity)}
+                className="flex gap-4 animate-fade-in relative cursor-pointer hover:opacity-80 transition-opacity"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className={cn(
