@@ -13,31 +13,46 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { toast } from "sonner";
+import type { PageType } from "@/pages/Index";
 
 interface NavItem {
   icon: React.ElementType;
   label: string;
-  active?: boolean;
+  page: PageType;
   badge?: number;
 }
 
 const mainNavItems: NavItem[] = [
-  { icon: LayoutDashboard, label: "Dashboard", active: true },
-  { icon: Users, label: "Employees", badge: 248 },
-  { icon: Calendar, label: "Leave Management", badge: 12 },
-  { icon: Clock, label: "Attendance" },
-  { icon: DollarSign, label: "Payroll" },
-  { icon: FileText, label: "Documents" },
-  { icon: Building2, label: "Departments" },
+  { icon: LayoutDashboard, label: "Dashboard", page: "dashboard" },
+  { icon: Users, label: "Employees", page: "employees", badge: 248 },
+  { icon: Calendar, label: "Leave Management", page: "leave", badge: 12 },
+  { icon: Clock, label: "Attendance", page: "attendance" },
+  { icon: DollarSign, label: "Payroll", page: "payroll" },
+  { icon: FileText, label: "Documents", page: "documents" },
+  { icon: Building2, label: "Departments", page: "departments" },
 ];
 
-const bottomNavItems: NavItem[] = [
+const bottomNavItems: Omit<NavItem, 'page'>[] = [
   { icon: Settings, label: "Settings" },
   { icon: HelpCircle, label: "Help Center" },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  currentPage: PageType;
+  onNavigate: (page: PageType) => void;
+}
+
+export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
+
+  const handleLogout = () => {
+    toast.success("Logged out successfully");
+  };
+
+  const handleHelp = () => {
+    toast.info("Opening Help Center...");
+  };
 
   return (
     <aside 
@@ -77,16 +92,36 @@ export function Sidebar() {
       {/* Main Navigation */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {mainNavItems.map((item) => (
-          <NavButton key={item.label} item={item} collapsed={collapsed} />
+          <NavButton 
+            key={item.label} 
+            item={item} 
+            collapsed={collapsed} 
+            isActive={currentPage === item.page}
+            onClick={() => onNavigate(item.page)}
+          />
         ))}
       </nav>
 
       {/* Bottom Navigation */}
       <div className="p-3 border-t border-sidebar-border space-y-1">
         {bottomNavItems.map((item) => (
-          <NavButton key={item.label} item={item} collapsed={collapsed} />
+          <button
+            key={item.label}
+            onClick={() => item.label === "Settings" ? onNavigate("settings") : handleHelp()}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
+              currentPage === "settings" && item.label === "Settings"
+                ? "bg-primary/10 text-primary" 
+                : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
+              collapsed && "justify-center px-0"
+            )}
+          >
+            <item.icon className="w-5 h-5 shrink-0" />
+            {!collapsed && <span className="text-sm font-medium">{item.label}</span>}
+          </button>
         ))}
         <button
+          onClick={handleLogout}
           className={cn(
             "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-destructive/80 hover:text-destructive hover:bg-destructive/10 transition-all",
             collapsed && "justify-center px-0"
@@ -118,14 +153,22 @@ export function Sidebar() {
   );
 }
 
-function NavButton({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
+interface NavButtonProps {
+  item: NavItem;
+  collapsed: boolean;
+  isActive: boolean;
+  onClick: () => void;
+}
+
+function NavButton({ item, collapsed, isActive, onClick }: NavButtonProps) {
   const Icon = item.icon;
   
   return (
     <button
+      onClick={onClick}
       className={cn(
         "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
-        item.active 
+        isActive 
           ? "bg-primary/10 text-primary" 
           : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
         collapsed && "justify-center px-0"
@@ -133,7 +176,7 @@ function NavButton({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
     >
       <Icon className={cn(
         "w-5 h-5 shrink-0",
-        item.active && "text-primary"
+        isActive && "text-primary"
       )} />
       {!collapsed && (
         <>
@@ -141,7 +184,7 @@ function NavButton({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
           {item.badge && (
             <span className={cn(
               "ml-auto text-xs px-2 py-0.5 rounded-full",
-              item.active 
+              isActive 
                 ? "bg-primary text-primary-foreground" 
                 : "bg-muted text-muted-foreground"
             )}>
@@ -150,7 +193,7 @@ function NavButton({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
           )}
         </>
       )}
-      {item.active && (
+      {isActive && (
         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
       )}
     </button>
