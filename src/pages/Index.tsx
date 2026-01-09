@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Header } from "@/components/dashboard/Header";
-import { QuickStats } from "@/components/dashboard/QuickStats";
-import { PendingApprovals } from "@/components/dashboard/PendingApprovals";
-import { AttendanceOverview } from "@/components/dashboard/AttendanceOverview";
-import { UpcomingEvents } from "@/components/dashboard/UpcomingEvents";
-import { RecentActivity } from "@/components/dashboard/RecentActivity";
-import { DepartmentBreakdown } from "@/components/dashboard/DepartmentBreakdown";
+import { KPISummaryStrip } from "@/components/dashboard/KPISummaryStrip";
+import { AttendanceControlPanel } from "@/components/dashboard/AttendanceControlPanel";
+import { LeaveApprovalCenter } from "@/components/dashboard/LeaveApprovalCenter";
+import { ShiftWorkforceSnapshot } from "@/components/dashboard/ShiftWorkforceSnapshot";
+import { PayrollStatusPanel } from "@/components/dashboard/PayrollStatusPanel";
+import { PerformanceOverview } from "@/components/dashboard/PerformanceOverview";
+import { RecruitmentSnapshot } from "@/components/dashboard/RecruitmentSnapshot";
+import { AssetSnapshot } from "@/components/dashboard/AssetSnapshot";
+import { MasterDataControl } from "@/components/dashboard/MasterDataControl";
 import { EmployeesPage } from "@/components/pages/EmployeesPage";
 import { LeaveManagementPage } from "@/components/pages/LeaveManagementPage";
 import { AttendancePage } from "@/components/pages/AttendancePage";
@@ -40,22 +43,38 @@ const Index = () => {
         );
       default:
         return (
-          <>
-            <QuickStats />
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <PendingApprovals />
+          <div className="space-y-5">
+            {/* KPI Summary Strip */}
+            <KPISummaryStrip />
+            
+            {/* Main 3-Column Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+              {/* Column 1 */}
+              <div className="space-y-5">
+                <AttendanceControlPanel />
+                <PayrollStatusPanel />
               </div>
-              <div>
-                <AttendanceOverview />
+              
+              {/* Column 2 */}
+              <div className="space-y-5">
+                <LeaveApprovalCenter />
+                <PerformanceOverview />
+              </div>
+              
+              {/* Column 3 */}
+              <div className="space-y-5">
+                <ShiftWorkforceSnapshot />
+                <RecruitmentSnapshot />
               </div>
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <UpcomingEvents />
-              <DepartmentBreakdown />
-              <RecentActivity />
+
+            {/* Bottom Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+              <AssetSnapshot />
+              <MasterDataControl />
+              <div className="lg:col-span-1" />
             </div>
-          </>
+          </div>
         );
     }
   };
@@ -67,7 +86,7 @@ const Index = () => {
       <main className="ml-[260px] transition-all duration-300">
         <Header onNavigate={setCurrentPage} />
         
-        <div className="p-6 space-y-6">
+        <div className="p-6">
           {renderPage()}
         </div>
       </main>
