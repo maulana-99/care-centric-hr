@@ -43,36 +43,25 @@ const Index = () => {
         );
       default:
         return (
-          <div className="space-y-5">
+          <div className="space-y-4">
             {/* KPI Summary Strip */}
             <KPISummaryStrip />
             
-            {/* Main 3-Column Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-              {/* Column 1 */}
-              <div className="space-y-5">
-                <AttendanceControlPanel />
-                <PayrollStatusPanel />
-              </div>
+            {/* Main Bento Grid */}
+            <div className="bento-grid">
+              {/* Row 1 */}
+              <AttendanceControlPanel />
+              <LeaveApprovalCenter />
+              <ShiftWorkforceSnapshot />
               
-              {/* Column 2 */}
-              <div className="space-y-5">
-                <LeaveApprovalCenter />
-                <PerformanceOverview />
-              </div>
+              {/* Row 2 */}
+              <PayrollStatusPanel />
+              <PerformanceOverview />
+              <RecruitmentSnapshot />
               
-              {/* Column 3 */}
-              <div className="space-y-5">
-                <ShiftWorkforceSnapshot />
-                <RecruitmentSnapshot />
-              </div>
-            </div>
-
-            {/* Bottom Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+              {/* Row 3 */}
               <AssetSnapshot />
               <MasterDataControl />
-              <div className="lg:col-span-1" />
             </div>
           </div>
         );

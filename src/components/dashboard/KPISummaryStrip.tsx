@@ -17,22 +17,22 @@ function KPICard({ title, value, icon: Icon, status = "neutral", subtitle }: KPI
   };
 
   return (
-    <div className="bg-card rounded-lg p-4 border border-border hover:shadow-md transition-all cursor-pointer group">
+    <div className="bg-card rounded-lg p-4 border border-border hover:shadow-md transition-all cursor-pointer group bento-col-1 h-[120px]">
       <div className="flex items-center justify-between mb-2">
-        <div className={`p-2 rounded-lg bg-muted group-hover:bg-primary/10 transition-colors`}>
+        <div className="p-2 rounded-lg bg-muted group-hover:bg-primary/10 transition-colors">
           <Icon className={`h-4 w-4 ${statusColors[status]}`} />
         </div>
       </div>
-      <p className={`text-2xl font-bold ${statusColors[status]}`}>{value}</p>
-      <p className="text-xs text-muted-foreground mt-1">{title}</p>
-      {subtitle && <p className="text-xs text-muted-foreground/70 mt-0.5">{subtitle}</p>}
+      <p className={`text-xl font-bold ${statusColors[status]}`}>{value}</p>
+      <p className="text-xs text-muted-foreground mt-1 truncate">{title}</p>
+      {subtitle && <p className="text-xs text-muted-foreground/70 truncate">{subtitle}</p>}
     </div>
   );
 }
 
 export function KPISummaryStrip() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div className="bento-grid bento-col-4">
       <KPICard
         title="Kehadiran Hari Ini"
         value="87%"
