@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import type { PageType } from "@/pages/Index";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface HeaderProps {
   onNavigate: (page: PageType) => void;
@@ -181,6 +182,9 @@ export function Header({ onNavigate }: HeaderProps) {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Theme Toggle */}
+        <ThemeToggle />
 
         {/* Notifications */}
         <DropdownMenu>
