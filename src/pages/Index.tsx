@@ -1,15 +1,12 @@
 import { useState } from "react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Header } from "@/components/dashboard/Header";
-import { KPISummaryStrip } from "@/components/dashboard/KPISummaryStrip";
-import { AttendanceControlPanel } from "@/components/dashboard/AttendanceControlPanel";
-import { LeaveApprovalCenter } from "@/components/dashboard/LeaveApprovalCenter";
-import { ShiftWorkforceSnapshot } from "@/components/dashboard/ShiftWorkforceSnapshot";
-import { PayrollStatusPanel } from "@/components/dashboard/PayrollStatusPanel";
-import { PerformanceOverview } from "@/components/dashboard/PerformanceOverview";
-import { RecruitmentSnapshot } from "@/components/dashboard/RecruitmentSnapshot";
-import { AssetSnapshot } from "@/components/dashboard/AssetSnapshot";
-import { MasterDataControl } from "@/components/dashboard/MasterDataControl";
+import { QuickStats } from "@/components/dashboard/QuickStats";
+import { PendingApprovals } from "@/components/dashboard/PendingApprovals";
+import { AttendanceOverview } from "@/components/dashboard/AttendanceOverview";
+import { UpcomingEvents } from "@/components/dashboard/UpcomingEvents";
+import { RecentActivity } from "@/components/dashboard/RecentActivity";
+import { DepartmentBreakdown } from "@/components/dashboard/DepartmentBreakdown";
 import { EmployeesPage } from "@/components/pages/EmployeesPage";
 import { LeaveManagementPage } from "@/components/pages/LeaveManagementPage";
 import { AttendancePage } from "@/components/pages/AttendancePage";
@@ -43,27 +40,22 @@ const Index = () => {
         );
       default:
         return (
-          <div className="space-y-4">
-            {/* KPI Summary Strip */}
-            <KPISummaryStrip />
-            
-            {/* Main Bento Grid */}
-            <div className="bento-grid">
-              {/* Row 1 */}
-              <AttendanceControlPanel />
-              <LeaveApprovalCenter />
-              <ShiftWorkforceSnapshot />
-              
-              {/* Row 2 */}
-              <PayrollStatusPanel />
-              <PerformanceOverview />
-              <RecruitmentSnapshot />
-              
-              {/* Row 3 */}
-              <AssetSnapshot />
-              <MasterDataControl />
+          <>
+            <QuickStats />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <PendingApprovals />
+              </div>
+              <div>
+                <AttendanceOverview />
+              </div>
             </div>
-          </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <UpcomingEvents />
+              <DepartmentBreakdown />
+              <RecentActivity />
+            </div>
+          </>
         );
     }
   };
@@ -75,7 +67,7 @@ const Index = () => {
       <main className="ml-[260px] transition-all duration-300">
         <Header onNavigate={setCurrentPage} />
         
-        <div className="p-6">
+        <div className="p-6 space-y-6">
           {renderPage()}
         </div>
       </main>
