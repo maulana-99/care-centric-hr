@@ -1,18 +1,21 @@
-import { 
-  LayoutDashboard, 
-  Users, 
-  Calendar, 
-  FileText, 
-  Clock, 
+import {
+  LayoutDashboard,
+  Users,
+  Calendar,
+  FileText,
+  Clock,
   DollarSign,
   Settings,
   HelpCircle,
   LogOut,
   ChevronLeft,
-  Building2
+  Building2,
+  RotateCw,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import type { PageType } from "@/pages/Index";
 
@@ -21,11 +24,20 @@ interface NavItem {
   label: string;
   page: PageType;
   badge?: number;
+  children?: NavItem[];
 }
 
 const mainNavItems: NavItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", page: "dashboard" },
-  { icon: Users, label: "Employees", page: "employees", badge: 248 },
+  {
+    icon: Users,
+    label: "Employees",
+    page: "employees",
+    badge: 248,
+    children: [
+      { icon: RotateCw, label: "Shifts", page: "shifts" }
+    ]
+  },
   { icon: Calendar, label: "Leave Management", page: "leave", badge: 12 },
   { icon: Clock, label: "Attendance", page: "attendance" },
   { icon: DollarSign, label: "Payroll", page: "payroll" },
@@ -55,7 +67,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
   };
 
   return (
-    <aside 
+    <aside
       className={cn(
         "fixed left-0 top-0 h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300 z-50",
         collapsed ? "w-[72px]" : "w-[260px]"
@@ -80,11 +92,11 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
             collapsed && "ml-0"
           )}
         >
-          <ChevronLeft 
+          <ChevronLeft
             className={cn(
               "w-4 h-4 text-muted-foreground transition-transform",
               collapsed && "rotate-180"
-            )} 
+            )}
           />
         </button>
       </div>
@@ -92,12 +104,14 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
       {/* Main Navigation */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {mainNavItems.map((item) => (
-          <NavButton 
-            key={item.label} 
-            item={item} 
-            collapsed={collapsed} 
+          <NavButton
+            key={item.label}
+            item={item}
+            collapsed={collapsed}
             isActive={currentPage === item.page}
-            onClick={() => onNavigate(item.page)}
+            isChildActive={item.children?.some(child => child.page === currentPage)}
+            currentPage={currentPage}
+            onClick={(page) => onNavigate(page)}
           />
         ))}
       </nav>
@@ -111,7 +125,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
               currentPage === "settings" && item.label === "Settings"
-                ? "bg-primary/10 text-primary" 
+                ? "bg-primary/10 text-primary"
                 : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
               collapsed && "justify-center px-0"
             )}
@@ -157,45 +171,102 @@ interface NavButtonProps {
   item: NavItem;
   collapsed: boolean;
   isActive: boolean;
-  onClick: () => void;
+  isChildActive?: boolean;
+  currentPage?: PageType;
+  onClick: (page: PageType) => void;
 }
 
-function NavButton({ item, collapsed, isActive, onClick }: NavButtonProps) {
+function NavButton({ item, collapsed, isActive, isChildActive, currentPage, onClick }: NavButtonProps) {
   const Icon = item.icon;
-  
+  const [isExpanded, setIsExpanded] = useState(isChildActive);
+  const hasChildren = item.children && item.children.length > 0;
+
+  useEffect(() => {
+    if (isChildActive) {
+      setIsExpanded(true);
+    }
+  }, [isChildActive]);
+
+  const handleMainClick = () => {
+    if (collapsed && hasChildren) {
+      onClick(item.page);
+      return;
+    }
+
+    onClick(item.page);
+    if (hasChildren && !isExpanded) {
+      setIsExpanded(true);
+    }
+  };
+
+  const handleToggleExpand = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsExpanded(!isExpanded);
+  };
+
   return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
-        isActive 
-          ? "bg-primary/10 text-primary" 
-          : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
-        collapsed && "justify-center px-0"
+    <>
+      <button
+        onClick={handleMainClick}
+        className={cn(
+          "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
+          isActive
+            ? "bg-primary/10 text-primary"
+            : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
+          collapsed && "justify-center px-0"
+        )}
+      >
+        <Icon className={cn(
+          "w-5 h-5 shrink-0",
+          isActive && "text-primary"
+        )} />
+        {!collapsed && (
+          <>
+            <span className="text-sm font-medium">{item.label}</span>
+            {item.badge && (
+              <span className={cn(
+                "ml-auto text-xs px-2 py-0.5 rounded-full",
+                isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground"
+              )}>
+                {item.badge}
+              </span>
+            )}
+            {hasChildren && (
+              <div
+                role="button"
+                onClick={handleToggleExpand}
+                className="ml-auto p-1 rounded-md hover:bg-black/5 dark:hover:bg-white/10"
+              >
+                {isExpanded ? (
+                  <ChevronDown className="w-4 h-4" />
+                ) : (
+                  <ChevronRight className="w-4 h-4" />
+                )}
+              </div>
+            )}
+          </>
+        )}
+        {isActive && (
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
+        )}
+      </button>
+
+      {/* Children Section */}
+      {!collapsed && hasChildren && isExpanded && (
+        <div className="mt-1 space-y-1 ml-4 border-l border-sidebar-border/50 pl-2">
+          {item.children!.map((child) => (
+            <NavButton
+              key={child.label}
+              item={child}
+              collapsed={collapsed}
+              isActive={currentPage === child.page}
+              onClick={onClick}
+            />
+          ))}
+        </div>
       )}
-    >
-      <Icon className={cn(
-        "w-5 h-5 shrink-0",
-        isActive && "text-primary"
-      )} />
-      {!collapsed && (
-        <>
-          <span className="text-sm font-medium">{item.label}</span>
-          {item.badge && (
-            <span className={cn(
-              "ml-auto text-xs px-2 py-0.5 rounded-full",
-              isActive 
-                ? "bg-primary text-primary-foreground" 
-                : "bg-muted text-muted-foreground"
-            )}>
-              {item.badge}
-            </span>
-          )}
-        </>
-      )}
-      {isActive && (
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
-      )}
-    </button>
+    </>
   );
 }

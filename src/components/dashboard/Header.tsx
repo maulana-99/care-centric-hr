@@ -1,16 +1,5 @@
 import { useState } from "react";
-import { Bell, Search, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Bell } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,13 +8,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "sonner";
 import type { PageType } from "@/pages/Index";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -41,40 +23,12 @@ const notifications = [
 ];
 
 export function Header({ onNavigate }: HeaderProps) {
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [newEmployee, setNewEmployee] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    department: "",
-    position: "",
+  const currentDate = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   });
-
-  const currentDate = new Date().toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  });
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      toast.info(`Searching for "${searchQuery}"...`);
-      onNavigate("employees");
-    }
-  };
-
-  const handleAddEmployee = () => {
-    if (!newEmployee.firstName || !newEmployee.lastName || !newEmployee.email) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-    toast.success(`${newEmployee.firstName} ${newEmployee.lastName} has been added!`);
-    setAddDialogOpen(false);
-    setNewEmployee({ firstName: "", lastName: "", email: "", department: "", position: "" });
-  };
 
   const unreadCount = notifications.filter(n => n.unread).length;
 
@@ -86,102 +40,6 @@ export function Header({ onNavigate }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-3">
-        {/* Search */}
-        <form onSubmit={handleSearch} className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Search employees, documents..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-64 pl-10 bg-card border-border"
-          />
-        </form>
-
-        {/* Add New Button */}
-        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="glow" className="gap-2">
-              <Plus className="w-4 h-4" />
-              Add Employee
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Add New Employee</DialogTitle>
-              <DialogDescription>
-                Enter the employee details below to add them to the system.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name *</Label>
-                  <Input
-                    id="firstName"
-                    value={newEmployee.firstName}
-                    onChange={(e) => setNewEmployee({ ...newEmployee, firstName: e.target.value })}
-                    placeholder="John"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name *</Label>
-                  <Input
-                    id="lastName"
-                    value={newEmployee.lastName}
-                    onChange={(e) => setNewEmployee({ ...newEmployee, lastName: e.target.value })}
-                    placeholder="Doe"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={newEmployee.email}
-                  onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
-                  placeholder="john.doe@company.com"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="department">Department</Label>
-                <Select
-                  value={newEmployee.department}
-                  onValueChange={(value) => setNewEmployee({ ...newEmployee, department: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="engineering">Engineering</SelectItem>
-                    <SelectItem value="marketing">Marketing</SelectItem>
-                    <SelectItem value="sales">Sales</SelectItem>
-                    <SelectItem value="design">Design</SelectItem>
-                    <SelectItem value="hr">HR</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="position">Position</Label>
-                <Input
-                  id="position"
-                  value={newEmployee.position}
-                  onChange={(e) => setNewEmployee({ ...newEmployee, position: e.target.value })}
-                  placeholder="Software Engineer"
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleAddEmployee}>
-                Add Employee
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
 
         {/* Theme Toggle */}
         <ThemeToggle />
@@ -202,8 +60,8 @@ export function Header({ onNavigate }: HeaderProps) {
             <DropdownMenuLabel>Notifications</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {notifications.map((notification) => (
-              <DropdownMenuItem 
-                key={notification.id} 
+              <DropdownMenuItem
+                key={notification.id}
                 className="flex flex-col items-start p-3 cursor-pointer"
                 onClick={() => toast.info(`Opening: ${notification.title}`)}
               >
@@ -218,7 +76,7 @@ export function Header({ onNavigate }: HeaderProps) {
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem 
+            <DropdownMenuItem
               className="justify-center text-primary cursor-pointer"
               onClick={() => toast.info("Opening all notifications...")}
             >

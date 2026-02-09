@@ -11,8 +11,9 @@ import { EmployeesPage } from "@/components/pages/EmployeesPage";
 import { LeaveManagementPage } from "@/components/pages/LeaveManagementPage";
 import { AttendancePage } from "@/components/pages/AttendancePage";
 import { SettingsPage } from "@/components/pages/SettingsPage";
+import { ShiftPage } from "@/components/pages/ShiftPage";
 
-export type PageType = "dashboard" | "employees" | "leave" | "attendance" | "payroll" | "documents" | "departments" | "settings";
+export type PageType = "dashboard" | "employees" | "leave" | "attendance" | "payroll" | "documents" | "departments" | "settings" | "shifts";
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState<PageType>("dashboard");
@@ -25,6 +26,8 @@ const Index = () => {
         return <LeaveManagementPage />;
       case "attendance":
         return <AttendancePage />;
+      case "shifts":
+        return <ShiftPage />;
       case "settings":
         return <SettingsPage />;
       case "payroll":
@@ -63,10 +66,10 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
-      
+
       <main className="ml-[260px] transition-all duration-300">
         <Header onNavigate={setCurrentPage} />
-        
+
         <div className="p-6 space-y-6">
           {renderPage()}
         </div>
