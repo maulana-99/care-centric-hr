@@ -12,6 +12,9 @@ import { LeaveManagementPage } from "@/components/pages/LeaveManagementPage";
 import { AttendancePage } from "@/components/pages/AttendancePage";
 import { SettingsPage } from "@/components/pages/SettingsPage";
 import { ShiftPage } from "@/components/pages/ShiftPage";
+import { PayrollPage } from "@/components/pages/PayrollPage";
+import { DocumentsPage } from "@/components/pages/DocumentsPage";
+import { DepartmentsPage } from "@/components/pages/DepartmentsPage";
 
 export type PageType = "dashboard" | "employees" | "leave" | "attendance" | "payroll" | "documents" | "departments" | "settings" | "shifts";
 
@@ -31,16 +34,11 @@ const Index = () => {
       case "settings":
         return <SettingsPage />;
       case "payroll":
+        return <PayrollPage />;
       case "documents":
+        return <DocumentsPage />;
       case "departments":
-        return (
-          <div className="flex items-center justify-center h-[60vh]">
-            <div className="text-center">
-              <h2 className="text-2xl font-semibold text-foreground mb-2 capitalize">{currentPage}</h2>
-              <p className="text-muted-foreground">This page is under construction</p>
-            </div>
-          </div>
-        );
+        return <DepartmentsPage />;
       default:
         return (
           <>
