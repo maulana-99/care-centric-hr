@@ -11,7 +11,7 @@ import {
 import {
   Search, Filter, Plus, MoreVertical, Mail, Phone, MapPin,
   CalendarDays, Briefcase, ChevronRight, UserPlus, Download,
-  ArrowUpDown, ExternalLink, Users
+  ArrowUpDown, ExternalLink, Users, ChevronLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -60,6 +60,27 @@ const STATUS_CONFIG: Record<EmployeeStatus, { label: string; color: string; bg: 
   remote: { label: "Remote", color: "text-sky-600 dark:text-sky-400", bg: "bg-sky-500/10 border-sky-500/20" },
 };
 
+// --- Stat Card ---
+function StatCard({ label, value, icon: Icon, color, sub }: { label: string; value: string | number; icon: React.ElementType; color: string; sub?: string }) {
+  return (
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+      <Card className="relative overflow-hidden border hover:shadow-lg transition-shadow group">
+        <CardContent className="p-5 flex items-center gap-4">
+          <div className={cn("p-3 rounded-2xl", color)}>
+            <Icon className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
+            <p className="text-2xl font-bold text-foreground mt-0.5">{value}</p>
+            {sub && <p className="text-[11px] text-muted-foreground mt-0.5">{sub}</p>}
+          </div>
+        </CardContent>
+        <div className={cn("absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none", color.replace("/10", "/5"))} />
+      </Card>
+    </motion.div>
+  );
+}
+
 export function EmployeesPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
@@ -67,6 +88,8 @@ export function EmployeesPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortField, setSortField] = useState<"name" | "join_date" | "role">("name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
 
   const filtered = useMemo(() => {
     let list = [...MOCK_EMPLOYEES];
@@ -88,13 +111,34 @@ export function EmployeesPage() {
     return list;
   }, [searchQuery, deptFilter, statusFilter, sortField, sortDir]);
 
+  const stats = useMemo(() => {
+    return {
+      total: MOCK_EMPLOYEES.length,
+      active: MOCK_EMPLOYEES.filter(e => e.status === "active").length,
+      onLeave: MOCK_EMPLOYEES.filter(e => e.status === "on_leave").length,
+      remote: MOCK_EMPLOYEES.filter(e => e.status === "remote").length,
+    };
+  }, []);
+
+  const paginatedData = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, currentPage, pageSize]);
+
+  const totalPages = Math.ceil(filtered.length / pageSize);
+
+  // Reset to page 1 when filters change
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [searchQuery, deptFilter, statusFilter, sortField, sortDir]);
+
   const toggleSort = (field: typeof sortField) => {
     if (sortField === field) setSortDir(d => d === "asc" ? "desc" : "asc");
     else { setSortField(field); setSortDir("asc"); }
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in p-2">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-card p-6 rounded-3xl border shadow-sm">
         <div className="space-y-1">
@@ -114,6 +158,14 @@ export function EmployeesPage() {
         </div>
       </div>
 
+      {/* Stats Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard label="Total Employees" value={stats.total} icon={Users} color="bg-primary/10 text-primary" sub="Global organization" />
+        <StatCard label="Active" value={stats.active} icon={Briefcase} color="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" sub="Currently working" />
+        <StatCard label="On Leave" value={stats.onLeave} icon={CalendarDays} color="bg-amber-500/10 text-amber-600 dark:text-amber-400" sub="Temporary inactive" />
+        <StatCard label="Remote" value={stats.remote} icon={MapPin} color="bg-sky-500/10 text-sky-600 dark:text-sky-400" sub="Work from anywhere" />
+      </div>
+
       {/* Filters & View Toggle */}
       <Card className="border rounded-2xl overflow-hidden">
         <CardContent className="p-4 flex flex-wrap items-center justify-between gap-4">
@@ -124,11 +176,11 @@ export function EmployeesPage() {
                 placeholder="Search by name, role, or email..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="pl-10 h-11 rounded-xl bg-muted/30 focus-visible:ring-primary/20"
+                className="pl-10 rounded-xl bg-muted/30 focus-visible:ring-primary/20"
               />
             </div>
             <Select value={deptFilter} onValueChange={setDeptFilter}>
-              <SelectTrigger className="w-[160px] h-11 rounded-xl">
+              <SelectTrigger className="w-[160px] rounded-xl">
                 <Briefcase className="w-4 h-4 mr-2 text-muted-foreground" />
                 <SelectValue placeholder="Department" />
               </SelectTrigger>
@@ -138,7 +190,7 @@ export function EmployeesPage() {
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[140px] h-11 rounded-xl">
+              <SelectTrigger className="w-[140px] rounded-xl">
                 <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -181,7 +233,7 @@ export function EmployeesPage() {
             transition={{ duration: 0.2 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
           >
-            {filtered.map((employee, i) => (
+            {paginatedData.map((employee, i) => (
               <EmployeeCard key={employee.id} employee={employee} index={i} />
             ))}
           </motion.div>
@@ -193,92 +245,168 @@ export function EmployeesPage() {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
           >
-            <Card className="border rounded-2xl overflow-hidden shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead className="bg-muted/30 border-b">
-                    <tr>
-                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                        <button className="flex items-center gap-1 hover:text-foreground transition-all" onClick={() => toggleSort("name")}>
-                          Employee <ArrowUpDown className="w-3 h-3" />
-                        </button>
-                      </th>
-                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Status</th>
-                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                        <button className="flex items-center gap-1 hover:text-foreground transition-all" onClick={() => toggleSort("role")}>
-                          Department / Role <ArrowUpDown className="w-3 h-3" />
-                        </button>
-                      </th>
-                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Location</th>
-                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                        <button className="flex items-center gap-1 hover:text-foreground transition-all" onClick={() => toggleSort("join_date")}>
-                          Join Date <ArrowUpDown className="w-3 h-3" />
-                        </button>
-                      </th>
-                      <th className="px-6 py-4 text-right"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {filtered.map((e, i) => (
-                      <motion.tr
-                        key={e.id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: i * 0.03 }}
-                        className="group hover:bg-muted/20 transition-all cursor-pointer"
-                        onClick={() => toast.info(`Viewing profile: ${e.name}`)}
-                      >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="w-10 h-10 border-2 border-background shadow-sm">
-                              <AvatarImage src={e.avatar} />
-                              <AvatarFallback>{e.name.split(" ").map(n => n[0]).join("")}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="text-sm font-bold group-hover:text-primary transition-colors">{e.name}</p>
-                              <p className="text-xs text-muted-foreground">{e.email}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <StatusBadge status={e.status} />
-                        </td>
-                        <td className="px-6 py-4">
-                          <div>
-                            <p className="text-sm font-medium">{e.department}</p>
-                            <p className="text-xs text-muted-foreground truncate max-w-[150px]">{e.role}</p>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <MapPin className="w-3 h-3" /> {e.location.split(",")[0]}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-1.5 text-xs font-mono">
-                            <CalendarDays className="w-3 h-3 text-muted-foreground" />
-                            {new Date(e.join_date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                                <MoreVertical className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48 rounded-xl">
-                              <DropdownMenuItem className="rounded-lg gap-2"><ExternalLink className="w-4 h-4" /> View Profile</DropdownMenuItem>
-                              <DropdownMenuItem className="rounded-lg gap-2"><Mail className="w-4 h-4" /> Message</DropdownMenuItem>
-                              <DropdownMenuItem className="rounded-lg gap-2"><Plus className="w-4 h-4" /> Assign Shift</DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+            <Card className="border rounded-2xl overflow-hidden">
+              <CardHeader className="pb-4 px-6 pt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <CardTitle className="text-lg">Employee Directory</CardTitle>
+                  <CardDescription>All registered organization members</CardDescription>
+                </div>
+
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <div className="flex items-center gap-2 mr-2">
+                    <span className="hidden sm:block text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Rows:</span>
+                    <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setCurrentPage(1); }}>
+                      <SelectTrigger className="w-[60px] h-8 text-xs bg-muted/40 border-border/50 rounded-xl"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {[8, 12, 24, 48].map(v => <SelectItem key={v} value={String(v)}>{v}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-xl border">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-lg"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+
+                    <div className="flex items-center gap-1 px-1">
+                      {(() => {
+                        const pages = [];
+                        for (let i = 1; i <= totalPages; i++) {
+                          if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                            if (pages.length > 0 && pages[pages.length - 1] !== i - 1 && pages[pages.length - 1] !== "...") {
+                              pages.push("...");
+                            }
+                            pages.push(i);
+                          }
+                        }
+                        return pages.map((p, idx) => (
+                          typeof p === "number" ? (
+                            <Button
+                              key={idx}
+                              variant={currentPage === p ? "default" : "ghost"}
+                              size="icon"
+                              className={cn(
+                                "h-7 w-7 text-[11px] font-bold rounded-lg transition-all",
+                                currentPage === p ? "gradient-primary border-0 text-white shadow-md scale-105" : "hover:bg-background/80"
+                              )}
+                              onClick={() => setCurrentPage(p)}
+                            >
+                              {p}
+                            </Button>
+                          ) : (
+                            <span key={idx} className="text-[10px] text-muted-foreground font-bold px-1 select-none">...</span>
+                          )
+                        ));
+                      })()}
+                    </div>
+
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-lg"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages || totalPages === 0}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0 pt-4">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="bg-muted/10 border-b text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70">
+                        <th className="px-6 py-4">
+                          <button className="flex items-center gap-1 hover:text-foreground transition-all" onClick={() => toggleSort("name")}>
+                            Employee <ArrowUpDown className="w-3 h-3" />
+                          </button>
+                        </th>
+                        <th className="px-6 py-4">Status</th>
+                        <th className="px-6 py-4">
+                          <button className="flex items-center gap-1 hover:text-foreground transition-all" onClick={() => toggleSort("role")}>
+                            Department / Role <ArrowUpDown className="w-3 h-3" />
+                          </button>
+                        </th>
+                        <th className="px-6 py-4">Location</th>
+                        <th className="px-6 py-4">
+                          <button className="flex items-center gap-1 hover:text-foreground transition-all" onClick={() => toggleSort("join_date")}>
+                            Join Date <ArrowUpDown className="w-3 h-3" />
+                          </button>
+                        </th>
+                        <th className="px-6 py-4 text-right pr-6">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      <AnimatePresence mode="popLayout">
+                        {paginatedData.map((e, i) => (
+                          <motion.tr
+                            key={e.id}
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.03 }}
+                            className="group hover:bg-muted/20 transition-all cursor-pointer"
+                            onClick={() => toast.info(`Viewing profile: ${e.name}`)}
+                          >
+                            <td className="px-6 py-5">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="w-10 h-10 border shadow-sm">
+                                  <AvatarImage src={e.avatar} />
+                                  <AvatarFallback>{e.name.split(" ").map(n => n[0]).join("")}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="text-sm font-bold group-hover:text-primary transition-colors">{e.name}</p>
+                                  <p className="text-[10px] text-muted-foreground font-semibold uppercase">{e.email}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-5">
+                              <StatusBadge status={e.status} />
+                            </td>
+                            <td className="px-6 py-5">
+                              <div>
+                                <p className="text-[13px] font-semibold">{e.department}</p>
+                                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold truncate max-w-[150px]">{e.role}</p>
+                              </div>
+                            </td>
+                            <td className="px-6 py-5">
+                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+                                <MapPin className="w-3 h-3" /> {e.location.split(",")[0]}
+                              </div>
+                            </td>
+                            <td className="px-6 py-5">
+                              <div className="flex items-center gap-1.5 text-sm font-mono font-bold text-muted-foreground">
+                                <CalendarDays className="w-3 h-3 text-muted-foreground" />
+                                {new Date(e.join_date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                              </div>
+                            </td>
+                            <td className="px-6 py-5 text-right pr-6">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full border border-border/50 opacity-0 group-hover:opacity-100 transition-all hover:bg-primary/5 hover:text-primary">
+                                    <MoreVertical className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-xl">
+                                  <DropdownMenuItem className="rounded-lg gap-2"><ExternalLink className="w-4 h-4 ml-1" /> View Profile</DropdownMenuItem>
+                                  <DropdownMenuItem className="rounded-lg gap-2"><Mail className="w-4 h-4 ml-1" /> Message</DropdownMenuItem>
+                                  <DropdownMenuItem className="rounded-lg gap-2"><Plus className="w-4 h-4 ml-1" /> Assign Shift</DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </td>
+                          </motion.tr>
+                        ))}
+                      </AnimatePresence>
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
             </Card>
           </motion.div>
         )}

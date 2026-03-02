@@ -12,12 +12,14 @@ import {
   Building2,
   RotateCw,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  MapPin
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import type { PageType } from "@/pages/Index";
+import { useUser } from "@/hooks/use-user";
 
 interface NavItem {
   icon: React.ElementType;
@@ -43,6 +45,7 @@ const mainNavItems: NavItem[] = [
   { icon: DollarSign, label: "Payroll", page: "payroll" },
   { icon: FileText, label: "Documents", page: "documents" },
   { icon: Building2, label: "Departments", page: "departments" },
+  { icon: MapPin, label: "Branches", page: "branches" },
 ];
 
 const bottomNavItems: Omit<NavItem, 'page'>[] = [
@@ -57,6 +60,8 @@ interface SidebarProps {
 
 export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const { user } = useUser();
+
 
   const handleLogout = () => {
     toast.success("Logged out successfully");
@@ -148,17 +153,23 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
 
       {/* User Profile */}
       <div className="p-3 border-t border-sidebar-border">
-        <div className={cn(
-          "flex items-center gap-3 p-2 rounded-lg hover:bg-sidebar-accent transition-colors cursor-pointer",
-          collapsed && "justify-center"
-        )}>
+        <div
+          onClick={() => onNavigate("profile")}
+          className={cn(
+            "flex items-center gap-3 p-2 rounded-lg hover:bg-sidebar-accent transition-colors cursor-pointer",
+            collapsed && "justify-center",
+            currentPage === "profile" && "bg-primary/10 text-primary"
+          )}
+        >
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0">
-            <span className="text-primary-foreground font-semibold text-sm">SA</span>
+            <span className="text-primary-foreground font-semibold text-sm">
+              {user.full_name.split(" ").map(n => n[0]).join("")}
+            </span>
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">Sarah Anderson</p>
-              <p className="text-xs text-muted-foreground truncate">HR Manager</p>
+              <p className="text-sm font-medium text-foreground truncate">{user.full_name}</p>
+              <p className="text-xs text-muted-foreground truncate">{user.position}</p>
             </div>
           )}
         </div>

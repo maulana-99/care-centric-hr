@@ -11,6 +11,8 @@ import {
 import { toast } from "sonner";
 import type { PageType } from "@/pages/Index";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useUser } from "@/hooks/use-user";
+
 
 interface HeaderProps {
   onNavigate: (page: PageType) => void;
@@ -31,11 +33,14 @@ export function Header({ onNavigate }: HeaderProps) {
   });
 
   const unreadCount = notifications.filter(n => n.unread).length;
+  const { user } = useUser();
+  const firstName = user.full_name.split(" ")[0];
+
 
   return (
     <header className="h-16 border-b border-border flex items-center justify-between px-6 bg-background/80 backdrop-blur-sm sticky top-0 z-40">
       <div>
-        <h1 className="text-xl font-semibold text-foreground">Good morning, Sarah</h1>
+        <h1 className="text-xl font-semibold text-foreground">Good morning, {firstName}</h1>
         <p className="text-sm text-muted-foreground">{currentDate}</p>
       </div>
 

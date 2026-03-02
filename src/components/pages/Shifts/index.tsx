@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
     DndContext,
     closestCenter,
@@ -29,16 +29,10 @@ import { Label } from "@/components/ui/label";
 
 import { Switch } from "@/components/ui/switch";
 import {
-    Plus,
-    GripVertical,
-    Calendar as CalendarIcon,
-    Clock,
-    Users,
-    MoreVertical,
-    Edit,
-    Trash2,
-    CalendarDays,
-    CheckCircle2
+    Plus, GripVertical, Calendar as CalendarIcon, Clock, Users,
+    MoreVertical, Edit, Trash2, CalendarDays, CheckCircle2,
+    Download, Timer, Plane, Heart, Baby,
+    BookOpen, Umbrella, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -322,6 +316,27 @@ function SortableEmployeeCard({
     );
 }
 
+// --- Stat Card ---
+function StatCard({ label, value, icon: Icon, color, sub }: { label: string; value: string | number; icon: React.ElementType; color: string; sub?: string }) {
+    return (
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+            <Card className="relative overflow-hidden border hover:shadow-lg transition-shadow group">
+                <CardContent className="p-5 flex items-center gap-4">
+                    <div className={cn("p-3 rounded-2xl", color)}>
+                        <Icon className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
+                        <p className="text-2xl font-bold text-foreground mt-0.5">{value}</p>
+                        {sub && <p className="text-[11px] text-muted-foreground mt-0.5">{sub}</p>}
+                    </div>
+                </CardContent>
+                <div className={cn("absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none", color.replace("/10", "/5"))} />
+            </Card>
+        </motion.div>
+    );
+}
+
 export function ShiftPage() {
     const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
     const [shifts, setShifts] = useState<Shift[]>(INITIAL_SHIFTS);
@@ -584,14 +599,21 @@ export function ShiftPage() {
     const activeEmployee = activeId ? employees.find(e => e.id === activeId) : null;
     const filteredEmployees = employees;
 
+    const stats = useMemo(() => ({
+        totalShifts: shifts.filter(s => s.id !== 'unassigned').length,
+        activePersonnel: employees.filter(e => e.shiftId !== 'unassigned').length,
+        unassigned: employees.filter(e => e.shiftId === 'unassigned').length,
+        activeShifts: shifts.filter(s => s.is_active && s.id !== 'unassigned').length,
+    }), [shifts, employees]);
+
     return (
-        <div className="space-y-8 animate-fade-in p-2">
+        <div className="space-y-6 animate-fade-in p-2">
             {/* Header Section */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-card p-6 rounded-3xl border shadow-sm">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-card p-6 rounded-3xl border shadow-sm">
                 <div className="space-y-1">
                     <h2 className="text-3xl font-bold tracking-tight text-foreground">Shift Management</h2>
                     <p className="text-muted-foreground flex items-center gap-2">
-                        <CalendarDays className="w-4 h-4" />
+                        <CalendarDays className="w-4 h-4 text-primary" />
                         Workspace Scheduling for February 2026
                     </p>
                 </div>
@@ -609,7 +631,7 @@ export function ShiftPage() {
                     </Button>
                     <Dialog open={isShiftDialogOpen} onOpenChange={setIsShiftDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button onClick={handleOpenCreateDialog} className="bg-primary text-primary-foreground hover:opacity-90 shadow-lg shadow-primary/20 px-6">
+                            <Button onClick={handleOpenCreateDialog} className="gradient-primary shadow-lg shadow-primary/20">
                                 <Plus className="w-4 h-4 mr-2" />
                                 Create Shift
                             </Button>
@@ -695,6 +717,14 @@ export function ShiftPage() {
                         </DialogContent>
                     </Dialog>
                 </div>
+            </div>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatCard label="Total Shifts" value={stats.totalShifts} icon={Clock} color="bg-primary/10 text-primary" sub="Total defined shifts" />
+                <StatCard label="Active Shifts" value={stats.activeShifts} icon={CheckCircle2} color="bg-emerald-500/10 text-emerald-600" sub="Currently active" />
+                <StatCard label="Assigned Staff" value={stats.activePersonnel} icon={Users} color="bg-blue-500/10 text-blue-600" sub="Staff in shifts" />
+                <StatCard label="Waitlist Pool" value={stats.unassigned} icon={Timer} color="bg-amber-500/10 text-amber-600" sub="Unassigned staff" />
             </div>
 
             {/* Main Board */}

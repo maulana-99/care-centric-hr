@@ -7,16 +7,20 @@ import { AttendanceOverview } from "@/components/dashboard/AttendanceOverview";
 import { UpcomingEvents } from "@/components/dashboard/UpcomingEvents";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { DepartmentBreakdown } from "@/components/dashboard/DepartmentBreakdown";
-import { EmployeesPage } from "@/components/pages/EmployeesPage";
-import { LeaveManagementPage } from "@/components/pages/LeaveManagementPage";
-import { AttendancePage } from "@/components/pages/AttendancePage";
-import { SettingsPage } from "@/components/pages/SettingsPage";
-import { ShiftPage } from "@/components/pages/ShiftPage";
-import { PayrollPage } from "@/components/pages/PayrollPage";
-import { DocumentsPage } from "@/components/pages/DocumentsPage";
-import { DepartmentsPage } from "@/components/pages/DepartmentsPage";
+import { EmployeesPage } from "@/components/pages/Employees";
+import { LeaveManagementPage } from "@/components/pages/LeaveManagement";
+import { AttendancePage } from "@/components/pages/Attendance";
+import { SettingsPage } from "@/components/pages/Settings";
+import { ShiftPage } from "@/components/pages/Shifts";
+import { PayrollPage } from "@/components/pages/Payroll";
+import { DocumentsPage } from "@/components/pages/Documents";
+import { DepartmentsPage } from "@/components/pages/Departments";
+import { ProfilePage } from "@/components/pages/Profile";
+import { BranchesPage } from "@/components/pages/Branches";
 
-export type PageType = "dashboard" | "employees" | "leave" | "attendance" | "payroll" | "documents" | "departments" | "settings" | "shifts";
+
+export type PageType = "dashboard" | "employees" | "leave" | "attendance" | "payroll" | "documents" | "departments" | "branches" | "settings" | "shifts" | "profile";
+
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState<PageType>("dashboard");
@@ -39,6 +43,11 @@ const Index = () => {
         return <DocumentsPage />;
       case "departments":
         return <DepartmentsPage />;
+      case "branches":
+        return <BranchesPage />;
+      case "profile":
+        return <ProfilePage />;
+
       default:
         return (
           <>
