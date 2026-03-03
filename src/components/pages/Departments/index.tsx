@@ -22,7 +22,7 @@ import {
     Building2, Plus, Search, CheckCircle2, XCircle,
     MoreVertical, Pencil, Trash2, ArrowUpDown, Users,
     Layers, ChevronRight, ChevronDown, GitBranch,
-    Eye, Network, FolderTree,
+    Eye, Network, FolderTree, Filter,
     UserPlus, X, GripVertical, ChevronLeft, TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -435,6 +435,8 @@ export function DepartmentsPage() {
     const [departments, setDepartments] = useState<Department[]>(INITIAL_DEPARTMENTS);
     const [employees, setEmployees] = useState<SimpleEmployee[]>([...ALL_EMPLOYEES]);
     const [searchQuery, setSearchQuery] = useState("");
+    const [parentFilter, setParentFilter] = useState<string>("all");
+    const [statusFilter, setStatusFilter] = useState<string>("all");
     const [sortField, setSortField] = useState<SortField>("name");
     const [sortDir, setSortDir] = useState<SortDir>("asc");
     const [viewMode, setViewMode] = useState<ViewMode>("table");
@@ -474,6 +476,11 @@ export function DepartmentsPage() {
         subDepts: departments.filter(d => d.parent_id !== null).length,
     }), [departments]);
 
+    // Root departments for parent filter
+    const rootDeptList = useMemo(() => {
+        return departments.filter(d => d.parent_id === null).sort((a, b) => a.name.localeCompare(b.name));
+    }, [departments]);
+
     // Helpers
     const getManager = (managerId: number | null) =>
         managerId ? employees.find(e => e.id === managerId) : undefined;
@@ -496,6 +503,9 @@ export function DepartmentsPage() {
             d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             d.code.toLowerCase().includes(searchQuery.toLowerCase())
         );
+        if (parentFilter === "root") list = list.filter(d => d.parent_id === null);
+        else if (parentFilter !== "all") list = list.filter(d => d.parent_id === Number(parentFilter));
+        if (statusFilter !== "all") list = list.filter(d => statusFilter === "active" ? d.is_active : !d.is_active);
         list.sort((a, b) => {
             let cmp = 0;
             if (sortField === "name") cmp = a.name.localeCompare(b.name);
@@ -504,7 +514,7 @@ export function DepartmentsPage() {
             return sortDir === "asc" ? cmp : -cmp;
         });
         return list;
-    }, [departments, searchQuery, sortField, sortDir]);
+    }, [departments, searchQuery, parentFilter, statusFilter, sortField, sortDir]);
 
     const paginatedData = useMemo(() => {
         const start = (currentPage - 1) * pageSize;
@@ -516,7 +526,7 @@ export function DepartmentsPage() {
     // Reset to page 1 when filters change
     useMemo(() => {
         setCurrentPage(1);
-    }, [searchQuery, sortField, sortDir]);
+    }, [searchQuery, parentFilter, statusFilter, sortField, sortDir]);
 
     const toggleSort = (field: SortField) => {
         if (sortField === field) setSortDir(d => d === "asc" ? "desc" : "asc");
@@ -734,6 +744,22 @@ export function DepartmentsPage() {
                             className="pl-10"
                         />
                     </div>
+                    <Select value={parentFilter} onValueChange={setParentFilter}>
+                        <SelectTrigger className="w-[170px]"><Filter className="w-4 h-4 mr-2 text-muted-foreground" /><SelectValue placeholder="Parent" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Departments</SelectItem>
+                            <SelectItem value="root">Root Only</SelectItem>
+                            {rootDeptList.map(d => <SelectItem key={d.id} value={String(d.id)}>Under {d.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-[150px]"><Filter className="w-4 h-4 mr-2 text-muted-foreground" /><SelectValue placeholder="Status" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Status</SelectItem>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="inactive">Inactive</SelectItem>
+                        </SelectContent>
+                    </Select>
                     <Badge variant="secondary" className="text-xs">{filtered.length} records</Badge>
                 </CardContent>
             </Card>

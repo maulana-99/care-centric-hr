@@ -22,7 +22,7 @@ import {
     MapPin, Plus, Search, Building2, CheckCircle2, XCircle,
     MoreVertical, Pencil, Trash2, ArrowUpDown, Globe2, Radius,
     Users, UserPlus, X, GripVertical, Mail, Briefcase, Eye,
-    ChevronLeft, ChevronRight,
+    ChevronLeft, ChevronRight, Filter,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -218,6 +218,8 @@ function BranchDropZone({ children, branchName }: { children: React.ReactNode; b
 export function BranchesPage() {
     const [branches, setBranches] = useState<Branch[]>(INITIAL_BRANCHES);
     const [searchQuery, setSearchQuery] = useState("");
+    const [cityFilter, setCityFilter] = useState<string>("all");
+    const [statusFilter, setStatusFilter] = useState<string>("all");
     const [sortField, setSortField] = useState<SortField>("name");
     const [sortDir, setSortDir] = useState<SortDir>("asc");
     const [currentPage, setCurrentPage] = useState(1);
@@ -251,12 +253,19 @@ export function BranchesPage() {
     const activeBranches = branches.filter(b => b.is_active).length;
     const uniqueCities = new Set(branches.map(b => b.city)).size;
 
+    // Derive city list for filter
+    const cityList = useMemo(() => {
+        return [...new Set(branches.map(b => b.city))].sort();
+    }, [branches]);
+
     // Filter & Sort
     const filtered = useMemo(() => {
         let list = branches.filter(b =>
             b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             b.city.toLowerCase().includes(searchQuery.toLowerCase())
         );
+        if (cityFilter !== "all") list = list.filter(b => b.city === cityFilter);
+        if (statusFilter !== "all") list = list.filter(b => statusFilter === "active" ? b.is_active : !b.is_active);
         list.sort((a, b) => {
             let cmp = 0;
             if (sortField === "name") cmp = a.name.localeCompare(b.name);
@@ -265,7 +274,7 @@ export function BranchesPage() {
             return sortDir === "asc" ? cmp : -cmp;
         });
         return list;
-    }, [branches, searchQuery, sortField, sortDir]);
+    }, [branches, searchQuery, cityFilter, statusFilter, sortField, sortDir]);
 
     const paginatedData = useMemo(() => {
         const start = (currentPage - 1) * pageSize;
@@ -277,7 +286,7 @@ export function BranchesPage() {
     // Reset to page 1 when filters change
     useMemo(() => {
         setCurrentPage(1);
-    }, [searchQuery, sortField, sortDir]);
+    }, [searchQuery, cityFilter, statusFilter, sortField, sortDir]);
 
     const toggleSort = (field: SortField) => {
         if (sortField === field) setSortDir(d => d === "asc" ? "desc" : "asc");
@@ -489,6 +498,21 @@ export function BranchesPage() {
                             className="pl-10"
                         />
                     </div>
+                    <Select value={cityFilter} onValueChange={setCityFilter}>
+                        <SelectTrigger className="w-[160px]"><Filter className="w-4 h-4 mr-2 text-muted-foreground" /><SelectValue placeholder="City" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Cities</SelectItem>
+                            {cityList.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-[150px]"><Filter className="w-4 h-4 mr-2 text-muted-foreground" /><SelectValue placeholder="Status" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Status</SelectItem>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="inactive">Inactive</SelectItem>
+                        </SelectContent>
+                    </Select>
                     <Badge variant="secondary" className="text-xs">{filtered.length} records</Badge>
                 </CardContent>
             </Card>
